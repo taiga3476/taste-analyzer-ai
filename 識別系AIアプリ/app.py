@@ -15,10 +15,12 @@ ILLUST_DIR = os.path.join(BASE_DIR, "illust")
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
+# ==========================================
+# 🧠 AIモデル読み込み（キャッシュ化して高速化）
+# ==========================================
 @st.cache_resource
-def load_tflite_model():
+def load_model():  # 👈 ここを「load_model」にします
     try:
-        # Python 3.10ならこれが確実に動きます
         import tflite_runtime.interpreter as tflite
         if os.path.exists(MODEL_PATH):
             interpreter = tflite.Interpreter(model_path=MODEL_PATH)
@@ -29,6 +31,9 @@ def load_tflite_model():
     except Exception as e:
         st.error(f"モデル読込エラー: {e}")
     return None, None, None
+
+# 👈 33行目の呼び出し名と完全に一致させます
+model_interpreter, input_details, output_details = load_model()
 
 model_interpreter, input_details, output_details = load_model()
 
