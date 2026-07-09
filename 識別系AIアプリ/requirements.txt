@@ -2,4 +2,4 @@ streamlit
 numpy
 Pillow
 translators
-tflite-runtime
+tensorflow-cpu
