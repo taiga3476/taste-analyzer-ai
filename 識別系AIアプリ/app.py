@@ -18,10 +18,10 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 @st.cache_resource
 def load_tflite_model():
     try:
-        # 👑 tflite_runtime ではなく tensorflow を使う形に戻します
-        import tensorflow as tf
+        # Python 3.10ならこれが確実に動きます
+        import tflite_runtime.interpreter as tflite
         if os.path.exists(MODEL_PATH):
-            interpreter = tf.lite.Interpreter(model_path=MODEL_PATH)
+            interpreter = tflite.Interpreter(model_path=MODEL_PATH)
             interpreter.allocate_tensors()
             input_details = interpreter.get_input_details()
             output_details = interpreter.get_output_details()
