@@ -2,8 +2,6 @@ import os
 import streamlit as st
 import numpy as np
 from PIL import Image
-import shutil
-import tempfile
 
 # ==========================================
 # 📂 フォルダ・パス設定
@@ -23,20 +21,17 @@ st.set_page_config(
 )
 
 # ==========================================
-# 🧠 AIモデル読み込み（安全な英語の仮設フォルダへ自動コピー）
+# 🧠 AIモデル読み込み（本家TensorFlow CPU版を使用）
 # ==========================================
 @st.cache_resource
 def load_model():
     try:
-        import tflite_runtime.interpreter as tflite
+        # 👑 相性エラーを回避するため、本家Googleの正式版TensorFlowを使用します
+        import tensorflow as tf
+        
         if os.path.exists(MODEL_PATH):
-            # サーバー内の安全な英語フォルダにモデルを複製してエラーを回避
-            temp_dir = tempfile.gettempdir()
-            safe_model_path = os.path.join(temp_dir, "model_safe.tflite")
-            shutil.copyfile(MODEL_PATH, safe_model_path)
-            
-            # モデルの読み込み
-            interpreter = tflite.Interpreter(model_path=safe_model_path)
+            # 本家ツールのInterpreterを使用（互換性エラーを完全回避）
+            interpreter = tf.lite.Interpreter(model_path=MODEL_PATH)
             interpreter.allocate_tensors()
             
             input_details = interpreter.get_input_details()
@@ -58,7 +53,7 @@ def predict_taste(pil_image):
         return 0, 0, 0
         
     try:
-        # モデルが求める画像のサイズ（縦・横）を自動取得（例: 224x224など）
+        # モデルが求める画像のサイズ（縦・横）を自動取得
         input_shape = input_details[0]['shape']
         h, w = input_shape[1], input_shape[2]
         
@@ -80,7 +75,7 @@ def predict_taste(pil_image):
         # 結果を取得
         output_data = model_interpreter.get_tensor(output_details[0]['index'])[0]
         
-        # 出力データから甘味・ spicy・酸味を取得（モデルの出力数に合わせて調整）
+        # 出力データから甘味・辛味・酸味を取得
         sweet = float(output_data[0]) if len(output_data) > 0 else 0.0
         spicy = float(output_data[1]) if len(output_data) > 1 else 0.0
         sour = float(output_data[2]) if len(output_data) > 2 else 0.0
@@ -138,7 +133,7 @@ if uploaded_file is not None:
         st.write(f"🍋 酸味 (Sour): {sour:.1f}%")
         st.progress(int(sour) / 100)
         
-        # 👑 一番数値が高い味のイラストを表示するオマケ機能
+        # 一番数値が高い味のイラストを表示するオマケ機能
         highest_taste = max(sweet, spicy, sour)
         illust_file = None
         
