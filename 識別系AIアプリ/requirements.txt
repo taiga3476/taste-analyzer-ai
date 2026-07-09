@@ -1,5 +1,4 @@
 streamlit
 numpy
 Pillow
-translators
 tflite-runtime
