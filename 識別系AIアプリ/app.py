@@ -27,17 +27,22 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 def load_model():
     try:
         import tflite_runtime.interpreter as tflite
+        import shutil
+        import tempfile
+        
         if os.path.exists(MODEL_PATH):
+            # 👑 究極の解決策：サーバー内の「安全な英語の仮設フォルダ」に
+            # モデルファイルを自動コピーし、日本語フォルダ名問題を完全回避する
+            temp_dir = tempfile.gettempdir()
+            safe_model_path = os.path.join(temp_dir, "model_safe.tflite")
             
-            # 👑 解決策：日本語フォルダ名のエラーを回避するため、
-            # Pythonの機能でバイナリデータとして読み込んでからAIに渡します。
-            with open(MODEL_PATH, "rb") as f:
-                model_data = f.read()
+            # ファイルを安全な場所にコピー
+            shutil.copyfile(MODEL_PATH, safe_model_path)
             
-            # model_pathではなく、読み込んだデータ(model_content)を直接渡す
-            interpreter = tflite.Interpreter(model_content=model_data)
-            
+            # コピー先の安全なパスからAIモデルを読み込む（普通の読み込み方に戻す）
+            interpreter = tflite.Interpreter(model_path=safe_model_path)
             interpreter.allocate_tensors()
+            
             input_details = interpreter.get_input_details()
             output_details = interpreter.get_output_details()
             return interpreter, input_details, output_details
@@ -46,6 +51,7 @@ def load_model():
     except Exception as e:
         st.error(f"モデル読込エラー: {e}")
     return None, None, None
+
 model_interpreter, input_details, output_details = load_model()
 
 # ==========================================
