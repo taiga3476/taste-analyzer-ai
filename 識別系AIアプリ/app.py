@@ -28,18 +28,24 @@ def load_model():
     try:
         import tflite_runtime.interpreter as tflite
         if os.path.exists(MODEL_PATH):
+            # 💡 【追加】実際のファイルサイズを計算して画面に出す
+            file_size_mb = os.path.getsize(MODEL_PATH) / (1024 * 1024)
+            st.info(f"📂 サーバー上の model.tflite のサイズ: {file_size_mb:.3f} MB")
+            
+            if file_size_mb < 0.01: # 10KB未満など極端に小さい場合
+                st.error("⚠️ ファイルサイズが小さすぎます！実データではなく、身代わりファイル（ポインタ）が上がっている可能性があります。")
+                return None, None, None
+
             interpreter = tflite.Interpreter(model_path=MODEL_PATH)
             interpreter.allocate_tensors()
             input_details = interpreter.get_input_details()
             output_details = interpreter.get_output_details()
             return interpreter, input_details, output_details
         else:
-            # 💡 ファイルが迷子の場合、画面に赤い警告が出るようにします
-            st.error(f"⚠️ AIモデルファイルが見つかりません。ファイルが以下の場所に正しくあるか確認してください：\n\n{MODEL_PATH}")
+            st.error(f"⚠️ AIモデルファイルが見つかりません：\n\n{MODEL_PATH}")
     except Exception as e:
         st.error(f"モデル読込エラー: {e}")
     return None, None, None
-
 model_interpreter, input_details, output_details = load_model()
 
 # ==========================================
