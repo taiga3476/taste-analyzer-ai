@@ -1,4 +1,4 @@
 streamlit
 numpy
 Pillow
-tflite-runtime
+tensorflow-cpu
